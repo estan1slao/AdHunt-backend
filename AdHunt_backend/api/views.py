@@ -115,7 +115,7 @@ class RegisterView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, description='Сообщение об успешной регистрации')
+                        'access': openapi.Schema(type=openapi.TYPE_STRING, description='JWT токен доступа')
                     }
                 )
             ),
@@ -134,8 +134,10 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+            user = serializer.save()
+            token_serializer = CustomTokenObtainPairSerializer()
+            token = token_serializer.get_token(user)
+            return Response({'access': str(token.access_token)}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -175,8 +177,8 @@ class AdvertisementImageSerializer(serializers.ModelSerializer):
 
 class AdvertisementSerializer(serializers.ModelSerializer):
     images = AdvertisementImageSerializer(many=True, read_only=True)
-    author = serializers.PrimaryKeyRelatedField(read_only=True)
-    is_favorite = serializers.SerializerMethodField()
+    author = UserProfileSerializer(read_only=True)
+    is_favorite = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Advertisement
@@ -187,6 +189,37 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return FavoriteAdvertisement.objects.filter(user=request.user, advertisement=obj).exists()
         return False
+
+class AdvertisementUpdateSerializer(serializers.ModelSerializer):
+    images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False
+    )
+
+    class Meta:
+        model = Advertisement
+        fields = ['title', 'description', 'price', 'images']
+
+    def update(self, instance, validated_data):
+        images = validated_data.pop('images', [])
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.price = validated_data.get('price', instance.price)
+        instance.status = AdvertisementStatus.PENDING
+        instance.save()
+
+        if images:
+            # Удаляем старые изображения
+            instance.images.all().delete()
+            # Создаем новые изображения
+            for image in images:
+                AdvertisementImage.objects.create(
+                    advertisement=instance,
+                    image=image
+                )
+
+        return instance
 
 class AdvertisementCreateSerializer(serializers.ModelSerializer):
     images = serializers.ListField(
@@ -296,6 +329,27 @@ class AdvertisementDetailView(APIView):
         advertisement = get_object_or_404(Advertisement, pk=pk)
         serializer = AdvertisementSerializer(advertisement, context={'request': request})
         return Response(serializer.data)
+
+    @swagger_auto_schema(
+        request_body=AdvertisementUpdateSerializer,
+        responses={
+            200: AdvertisementSerializer,
+            400: "Ошибка валидации данных",
+            403: "Нет прав на редактирование",
+            404: "Объявление не найдено"
+        },
+        operation_description="Редактирование объявления"
+    )
+    def put(self, request, pk):
+        advertisement = get_object_or_404(Advertisement, pk=pk)
+        if advertisement.author != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = AdvertisementUpdateSerializer(advertisement, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated_advertisement = serializer.save()
+            return Response(AdvertisementSerializer(updated_advertisement, context={'request': request}).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         responses={

@@ -1,8 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 class Role(models.TextChoices):
     USER = 'user', 'User'
@@ -38,7 +36,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
 
     def __str__(self):
-        return self.emai
+        return self.email
 
 class AdvertisementStatus(models.TextChoices):
     PENDING = 'pending', 'На модерации'
@@ -108,4 +106,3 @@ class FavoriteAdvertisement(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.advertisement.title}"
-

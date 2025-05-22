@@ -32,13 +32,13 @@ data "yandex_iam_service_account" "sa" {
 resource "yandex_resourcemanager_folder_iam_member" "editor" {
   folder_id = var.folder_id
   role      = "editor"
-  member    = "serviceAccount:${yandex_iam_service_account.sa.id}"
+  member    = "serviceAccount:${data.yandex_iam_service_account.sa.id}"
 }
 
 resource "yandex_resourcemanager_folder_iam_member" "storage_admin" {
   folder_id = var.folder_id
   role      = "storage.admin"
-  member    = "serviceAccount:${yandex_iam_service_account.sa.id}"
+  member    = "serviceAccount:${data.yandex_iam_service_account.sa.id}"
 }
 
 resource "yandex_mdb_postgresql_cluster" "pg" {
@@ -86,7 +86,7 @@ resource "yandex_storage_bucket" "bucket" {
 }
 
 resource "yandex_iam_service_account_static_access_key" "sa_keys" {
-  service_account_id = yandex_iam_service_account.sa.id
+  service_account_id = data.yandex_iam_service_account.sa.id
   description        = "Static access keys for S3 usage"
 }
 

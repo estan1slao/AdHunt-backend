@@ -264,27 +264,34 @@ def notify_queue(advertisement):
     if os.getenv("USE_YMQ") != "True":
         return
 
-    client = boto3.client(
-        'sqs',
-        region_name='ru-central1',
-        endpoint_url='https://message-queue.api.cloud.yandex.net',
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
-    )
+    try:
+        client = boto3.client(
+            'sqs',
+            region_name='ru-central1',
+            endpoint_url='https://message-queue.api.cloud.yandex.net',
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+        )
 
-    queue_url = os.getenv("YMQ_ADS_QUEUE_URL")
-    message = {
-        "id": advertisement.id,
-        "title": advertisement.title,
-        "author": advertisement.author.email,
-        "status": advertisement.status
-    }
+        queue_url = os.getenv("YMQ_ADS_QUEUE_URL")
+        if not queue_url:
+            print("YMQ_ADS_QUEUE_URL не установлен")
+            return
 
-    client.send_message(
-        QueueUrl=queue_url,
-        MessageBody=json.dumps(message)
-    )
+        message = {
+            "id": advertisement.id,
+            "title": advertisement.title,
+            "author": advertisement.author.email,
+            "status": advertisement.status
+        }
 
+        client.send_message(
+            QueueUrl=queue_url,
+            MessageBody=json.dumps(message)
+        )
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения в очередь: {str(e)}")
+        # Продолжаем выполнение, так как ошибка очереди не должна блокировать создание объявления
 
 class IsModerator(permissions.BasePermission):
     def has_permission(self, request, view):

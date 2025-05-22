@@ -103,10 +103,15 @@ class UserProfileView(APIView):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = CustomUser.EMAIL_FIELD
 
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Добавляем роль пользователя в токен
+        token['role'] = user.role
+        return token
+
     def validate(self, attrs):
         data = super().validate(attrs)
-        # Добавляем информацию о роли пользователя в токен
-        data['role'] = self.user.role
         return {'access': data['access']}  # Return only the access token
 
 class RegisterView(APIView):

@@ -101,8 +101,3 @@ resource "yandex_resourcemanager_folder_iam_member" "message_writer" {
   role      = "ymq.writer"
   member    = "serviceAccount:${data.yandex_iam_service_account.sa.id}"
 }
-
-resource "yandex_iam_service_account_static_access_key" "sa_keys" {
-  service_account_id = data.yandex_iam_service_account.sa.id
-  description        = "Static access keys for S3 usage"
-}

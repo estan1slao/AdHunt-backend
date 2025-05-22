@@ -79,8 +79,8 @@ resource "yandex_mdb_postgresql_database" "db" {
 
 resource "yandex_storage_bucket" "bucket" {
   bucket     = "adhunt-static-media"
-  access_key = var.s3_access_key
-  secret_key = var.s3_secret_key
+  access_key = yandex_iam_service_account_static_access_key.sa_keys.access_key
+  secret_key = yandex_iam_service_account_static_access_key.sa_keys.secret_key
   acl        = "public-read"
   force_destroy = true
 }

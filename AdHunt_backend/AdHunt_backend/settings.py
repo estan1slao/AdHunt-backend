@@ -60,8 +60,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'AdHunt_backend.wsgi.application'
 
 # Database
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL is not set in the environment.")
+
 DATABASES = {
-    'default': dj_database_url.config(default='sqlite:///' + str(BASE_DIR / "db.sqlite3"))
+    'default': dj_database_url.parse(DATABASE_URL)
 }
 
 # Password validation
@@ -85,16 +89,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # S3-compatible object storage
-if os.getenv("USE_S3") == "True":
+if os.getenv("USE_S3", "False") == "True":
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
     AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
 
+    if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_ENDPOINT_URL]):
+        raise Exception("One or more AWS S3 environment variables are missing.")
+
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
     MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/"
-    STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/static/"
 
 # Auth user
 AUTH_USER_MODEL = 'api.CustomUser'

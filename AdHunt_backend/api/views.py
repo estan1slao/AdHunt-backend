@@ -105,6 +105,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
+        # Добавляем информацию о роли пользователя в токен
+        data['role'] = self.user.role
         return {'access': data['access']}  # Return only the access token
 
 class RegisterView(APIView):

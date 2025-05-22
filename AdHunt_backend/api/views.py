@@ -262,21 +262,30 @@ class AdvertisementCreateSerializer(serializers.ModelSerializer):
 
 def notify_queue(advertisement):
     if os.getenv("USE_YMQ") != "True":
+        print("YMQ отключен (USE_YMQ != True)")
         return
 
     try:
+        aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        queue_url = os.getenv("YMQ_ADS_QUEUE_URL")
+
+        if not all([aws_access_key, aws_secret_key, queue_url]):
+            print("Отсутствуют необходимые переменные окружения:")
+            print(f"AWS_ACCESS_KEY_ID: {'установлен' if aws_access_key else 'отсутствует'}")
+            print(f"AWS_SECRET_ACCESS_KEY: {'установлен' if aws_secret_key else 'отсутствует'}")
+            print(f"YMQ_ADS_QUEUE_URL: {'установлен' if queue_url else 'отсутствует'}")
+            return
+
+        print(f"Подключение к YMQ с URL очереди: {queue_url}")
+        
         client = boto3.client(
             'sqs',
             region_name='ru-central1',
             endpoint_url='https://message-queue.api.cloud.yandex.net',
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key
         )
-
-        queue_url = os.getenv("YMQ_ADS_QUEUE_URL")
-        if not queue_url:
-            print("YMQ_ADS_QUEUE_URL не установлен")
-            return
 
         message = {
             "id": advertisement.id,
@@ -285,12 +294,17 @@ def notify_queue(advertisement):
             "status": advertisement.status
         }
 
-        client.send_message(
+        print(f"Отправка сообщения: {json.dumps(message)}")
+        
+        response = client.send_message(
             QueueUrl=queue_url,
             MessageBody=json.dumps(message)
         )
+        print(f"Сообщение успешно отправлено. Response: {response}")
+        
     except Exception as e:
         print(f"Ошибка при отправке сообщения в очередь: {str(e)}")
+        print(f"Тип ошибки: {type(e).__name__}")
         # Продолжаем выполнение, так как ошибка очереди не должна блокировать создание объявления
 
 class IsModerator(permissions.BasePermission):

@@ -16,6 +16,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+import boto3
+import os
+import json
 
 class RegisterSerializer(ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
@@ -245,8 +248,36 @@ class AdvertisementCreateSerializer(serializers.ModelSerializer):
                 advertisement=advertisement,
                 image=image
             )
+
+        notify_queue(advertisement)
         
         return advertisement
+
+def notify_queue(advertisement):
+    if os.getenv("USE_YMQ") != "True":
+        return
+
+    client = boto3.client(
+        'sqs',
+        region_name='ru-central1',
+        endpoint_url='https://message-queue.api.cloud.yandex.net',
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+    )
+
+    queue_url = os.getenv("YMQ_ADS_QUEUE_URL")
+    message = {
+        "id": advertisement.id,
+        "title": advertisement.title,
+        "author": advertisement.author.email,
+        "status": advertisement.status
+    }
+
+    client.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(message)
+    )
+
 
 class IsModerator(permissions.BasePermission):
     def has_permission(self, request, view):

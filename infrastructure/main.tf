@@ -25,7 +25,7 @@ resource "yandex_vpc_subnet" "subnet" {
   v4_cidr_blocks = ["10.5.0.0/16"]
 }
 
-resource "yandex_iam_service_account" "sa" {
+data "yandex_iam_service_account" "sa" {
   name = "adhunt-service-account"
 }
 
@@ -91,11 +91,18 @@ resource "yandex_iam_service_account_static_access_key" "sa_keys" {
 }
 
 resource "yandex_message_queue" "ads_publish_queue" {
-  name = "ads-publish-queue"
+  name       = "ads-publish-queue"
+  access_key = yandex_iam_service_account_static_access_key.sa_keys.access_key
+  secret_key = yandex_iam_service_account_static_access_key.sa_keys.secret_key
 }
 
 resource "yandex_resourcemanager_folder_iam_member" "message_writer" {
   folder_id = var.folder_id
   role      = "ymq.writer"
-  member    = "serviceAccount:${yandex_iam_service_account.sa.id}"
+  member    = "serviceAccount:${data.yandex_iam_service_account.sa.id}"
+}
+
+resource "yandex_iam_service_account_static_access_key" "sa_keys" {
+  service_account_id = data.yandex_iam_service_account.sa.id
+  description        = "Static access keys for S3 usage"
 }

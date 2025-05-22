@@ -75,3 +75,8 @@ resource "yandex_storage_bucket" "bucket" {
   acl        = "public-read"
   force_destroy = true
 }
+
+resource "yandex_iam_service_account_static_access_key" "sa_keys" {
+  service_account_id = yandex_iam_service_account.sa.id
+  description        = "Static access keys for S3 usage"
+}

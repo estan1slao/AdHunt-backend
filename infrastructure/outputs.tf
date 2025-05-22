@@ -10,3 +10,13 @@ output "s3_bucket_name" {
 output "s3_endpoint_url" {
   value = "https://storage.yandexcloud.net"
 }
+
+output "s3_access_key" {
+  value     = yandex_iam_service_account_static_access_key.sa_keys.access_key
+  sensitive = true
+}
+
+output "s3_secret_key" {
+  value     = yandex_iam_service_account_static_access_key.sa_keys.secret_key
+  sensitive = true
+}

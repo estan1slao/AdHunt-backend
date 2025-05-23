@@ -75,16 +75,27 @@ resource "yandex_compute_instance_group" "adhunt_group" {
               Environment="PATH=/home/ubuntu/AdHunt-backend/venv/bin"
               Environment="PYTHONPATH=/home/ubuntu/AdHunt-backend/AdHunt_backend"
               Environment="DJANGO_SETTINGS_MODULE=AdHunt_backend.settings"
-              ExecStart=/home/ubuntu/AdHunt-backend/venv/bin/gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000
+              ExecStart=/home/ubuntu/AdHunt-backend/venv/bin/gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000 --log-level debug --access-logfile /var/log/adhunt/access.log --error-logfile /var/log/adhunt/error.log
               Restart=always
+              RestartSec=10
+              StandardOutput=append:/var/log/adhunt/service.log
+              StandardError=append:/var/log/adhunt/service.log
 
               [Install]
               WantedBy=multi-user.target
 
         runcmd:
+          - mkdir -p /var/log/adhunt
+          - chown -R ubuntu:ubuntu /var/log/adhunt
+          - cd /home/ubuntu/AdHunt-backend
+          - ls -la
+          - pwd
           - systemctl daemon-reload
           - systemctl enable adhunt.service
           - systemctl start adhunt.service
+          - sleep 5
+          - systemctl status adhunt.service
+          - journalctl -u adhunt.service --no-pager
       EOT
     }
   }

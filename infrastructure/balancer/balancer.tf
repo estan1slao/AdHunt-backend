@@ -1,8 +1,25 @@
+terraform {
+  required_providers {
+    yandex = {
+      source  = "yandex-cloud/yandex"
+      version = ">= 0.89"
+    }
+  }
+}
+
+provider "yandex" {
+  token     = var.yc_token
+  cloud_id  = var.cloud_id
+  folder_id = var.folder_id
+  zone      = "ru-central1-a"
+}
+
+
 # Создание группы экземпляров
 resource "yandex_compute_instance_group" "adhunt_group" {
   name               = "adhunt-instance-group"
   folder_id          = var.folder_id
-  service_account_id = data.yandex_iam_service_account.sa.id
+  service_account_id = var.service_account_id
 
   instance_template {
     platform_id = "standard-v1"

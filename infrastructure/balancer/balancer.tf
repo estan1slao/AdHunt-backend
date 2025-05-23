@@ -29,9 +29,6 @@ data "yandex_compute_snapshot" "adhunt_snapshot" {
   name = "adhunt-disk-ubuntu-20-04"
 }
 
-resource "yandex_lb_target_group" "adhunt_target_group" {
-  name = "adhunt-target-group"
-}
 
 # Создание группы экземпляров
 resource "yandex_compute_instance_group" "adhunt_group" {
@@ -132,6 +129,10 @@ resource "yandex_compute_instance_group" "adhunt_group" {
       port = 8000
     }
   }
+
+    load_balancer {
+    target_group_name = "adhunt-target-group" # создается автоматически
+  }
 }
 
 # Создание балансировщика нагрузки
@@ -146,7 +147,7 @@ resource "yandex_lb_network_load_balancer" "adhunt_nlb" {
   }
 
   attached_target_group {
-    target_group_id = yandex_lb_target_group.adhunt_target_group.id
+    target_group_id = yandex_compute_instance_group.adhunt_group.load_balancer[0].target_group_id
 
     healthcheck {
       name = "http"
@@ -154,20 +155,5 @@ resource "yandex_lb_network_load_balancer" "adhunt_nlb" {
         port = 8000
       }
     }
-  }
-}
-
-# Добавляем экземпляры в целевую группу через API
-resource "null_resource" "add_instances_to_target_group" {
-  triggers = {
-    instance_group_id = yandex_compute_instance_group.adhunt_group.id
-    target_group_id   = yandex_lb_target_group.adhunt_target_group.id
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      yc load-balancer target-group add-targets ${yandex_lb_target_group.adhunt_target_group.id} \
-        --target address=${yandex_compute_instance_group.adhunt_group.instances[0].network_interface[0].ip_address},subnet-id=${data.yandex_vpc_subnet.subnet.id}
-    EOT
   }
 }

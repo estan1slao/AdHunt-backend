@@ -14,6 +14,21 @@ SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret")
 DEBUG = os.getenv("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
+# Оптимизация производительности
+CONN_MAX_AGE = 60  # Время жизни соединения с базой данных в секундах
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Отключение логирования
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+}
+
 # Installed apps
 INSTALLED_APPS = [
     'django.contrib.admin',

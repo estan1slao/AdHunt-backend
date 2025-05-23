@@ -75,7 +75,7 @@ resource "yandex_compute_instance_group" "adhunt_group" {
               Environment="PATH=/home/ubuntu/AdHunt-backend/venv/bin"
               Environment="PYTHONPATH=/home/ubuntu/AdHunt-backend/AdHunt_backend"
               Environment="DJANGO_SETTINGS_MODULE=AdHunt_backend.settings"
-              ExecStart=/home/ubuntu/AdHunt-backend/venv/bin/gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000 --log-level debug --access-logfile /var/log/adhunt/access.log --error-logfile /var/log/adhunt/error.log
+              ExecStart=/home/ubuntu/AdHunt-backend/venv/bin/gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2 --worker-class gthread --timeout 30 --keep-alive 5 --max-requests 1000 --max-requests-jitter 50
               Restart=always
               RestartSec=10
               StandardOutput=append:/var/log/adhunt/service.log

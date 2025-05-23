@@ -14,6 +14,21 @@ provider "yandex" {
   zone      = "ru-central1-a"
 }
 
+data "yandex_vpc_network" "network" {
+  name = "adhunt-network"
+}
+
+data "yandex_vpc_subnet" "subnet" {
+  name           = "adhunt-subnet"
+  zone           = "ru-central1-a"
+  network_id     = yandex_vpc_network.network.id
+  v4_cidr_blocks = ["10.5.0.0/16"]
+}
+
+resource "yandex_lb_target_group" "adhunt_target_group" {
+  name = "adhunt-target-group"
+}
+
 
 # Создание группы экземпляров
 resource "yandex_compute_instance_group" "adhunt_group" {

@@ -22,10 +22,16 @@ data "yandex_vpc_subnet" "subnet" {
   name = "adhunt-subnet"
 }
 
-# Создание образа из существующей ВМ
+# Получаем данные о существующем снимке диска
+data "yandex_compute_snapshot" "adhunt_snapshot" {
+  name = "adhunt-disk-ubuntu-20-04"
+}
+
+# Создаем образ из снимка
 resource "yandex_compute_image" "adhunt_image" {
-  name       = "adhunt-image"
-  source_disk_id = "fhmettr89egs715r95o7"
+  name        = "adhunt-image-from-snapshot"
+  source_snapshot_id = data.yandex_compute_snapshot.adhunt_snapshot.id
+  os_type     = "LINUX"
 }
 
 resource "yandex_lb_target_group" "adhunt_target_group" {

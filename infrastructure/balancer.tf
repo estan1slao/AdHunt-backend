@@ -28,7 +28,7 @@ resource "yandex_compute_instance_group" "adhunt_group" {
       user-data = <<-EOT
         #cloud-config
         runcmd:
-          - cd /home/ubuntu/AdHunt-backend
+          - cd ~/AdHunt-backend
           - source venv/bin/activate
           - PYTHONPATH=./AdHunt_backend DJANGO_SETTINGS_MODULE=AdHunt_backend.settings gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000
       EOT

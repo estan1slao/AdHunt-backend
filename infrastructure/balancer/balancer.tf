@@ -27,11 +27,10 @@ data "yandex_compute_snapshot" "adhunt_snapshot" {
   name = "adhunt-disk-ubuntu-20-04"
 }
 
-# Создаем образ из снимка
 resource "yandex_compute_image" "adhunt_image" {
-  name        = "adhunt-image-from-snapshot"
-  source_snapshot_id = data.yandex_compute_snapshot.adhunt_snapshot.id
-  os_type     = "LINUX"
+  name          = "adhunt-image-from-snapshot"
+  source_image  = data.yandex_compute_snapshot.adhunt_snapshot.id
+  os_type       = "LINUX"
 }
 
 resource "yandex_lb_target_group" "adhunt_target_group" {

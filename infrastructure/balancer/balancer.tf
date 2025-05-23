@@ -96,10 +96,6 @@ resource "yandex_compute_instance_group" "adhunt_group" {
       port = 8000
     }
   }
-
-  load_balancer {
-    target_group_id = yandex_lb_target_group.adhunt_target_group.id
-  }
 }
 
 # Создание балансировщика нагрузки
@@ -123,4 +119,10 @@ resource "yandex_lb_network_load_balancer" "adhunt_nlb" {
       }
     }
   }
+}
+
+# Добавляем экземпляры в целевую группу
+resource "yandex_lb_target_group_attachment" "adhunt_target_group_attachment" {
+  target_group_id = yandex_lb_target_group.adhunt_target_group.id
+  instance_id     = yandex_compute_instance_group.adhunt_group.instances[0].instance_id
 }

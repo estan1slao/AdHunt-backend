@@ -90,12 +90,9 @@ resource "yandex_compute_instance_group" "adhunt_group" {
           - mkdir -p /home/ubuntu/AdHunt-backend
           - chown -R ubuntu:ubuntu /home/ubuntu/AdHunt-backend
           - mkdir -p /mnt/snapshot
-          - lsblk
-          - find /dev -name "sd*" -type b
-          - mount /dev/sda1 /mnt/snapshot || mount /dev/vda1 /mnt/snapshot
-          - ls -la /mnt/snapshot
-          - find /mnt/snapshot -name "AdHunt-backend" -type d
-          - cp -r /mnt/snapshot/home/ubuntu/AdHunt-backend/* /home/ubuntu/AdHunt-backend/ || echo "Failed to copy files"
+          - mount /dev/vda1 /mnt/snapshot
+          - ls -la /mnt/snapshot/home
+          - cp -r /mnt/snapshot/home/adhunt/AdHunt-backend/* /home/ubuntu/AdHunt-backend/
           - chown -R ubuntu:ubuntu /home/ubuntu/AdHunt-backend
           - cd /home/ubuntu/AdHunt-backend
           - ls -la /home/ubuntu/AdHunt-backend

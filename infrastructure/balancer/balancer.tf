@@ -76,6 +76,7 @@ resource "yandex_compute_instance_group" "adhunt_group" {
 
   scale_policy {
     auto_scale {
+      initial_size         = 1
       min_zone_size        = 1
       max_size             = 4
       measurement_duration = 60

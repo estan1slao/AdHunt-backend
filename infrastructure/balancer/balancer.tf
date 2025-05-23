@@ -14,12 +14,14 @@ provider "yandex" {
   zone      = "ru-central1-a"
 }
 
+# Используем существующую сеть по ID
 data "yandex_vpc_network" "network" {
-  name = "adhunt-network" 
+  network_id = "enps7chdm6i5mjejb51q"
 }
 
+# Используем существующую подсеть по ID
 data "yandex_vpc_subnet" "subnet" {
-  name = "adhunt-subnet"
+  subnet_id = "e9buau810hkqh77fh655"
 }
 
 # Получаем данные о существующем снимке диска

@@ -121,8 +121,17 @@ resource "yandex_lb_network_load_balancer" "adhunt_nlb" {
   }
 }
 
-# Добавляем экземпляры в целевую группу
-resource "yandex_lb_target_group_attachment" "adhunt_target_group_attachment" {
-  target_group_id = yandex_lb_target_group.adhunt_target_group.id
-  instance_id     = yandex_compute_instance_group.adhunt_group.instances[0].instance_id
+# Добавляем экземпляры в целевую группу через API
+resource "null_resource" "add_instances_to_target_group" {
+  triggers = {
+    instance_group_id = yandex_compute_instance_group.adhunt_group.id
+    target_group_id   = yandex_lb_target_group.adhunt_target_group.id
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      yc load-balancer target-group add-targets ${yandex_lb_target_group.adhunt_target_group.id} \
+        --target subnet-id=${data.yandex_vpc_subnet.subnet.id},ip-address=${yandex_compute_instance_group.adhunt_group.instances[0].network_interface[0].ip_address}
+    EOT
+  }
 }

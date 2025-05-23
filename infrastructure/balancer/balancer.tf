@@ -167,7 +167,7 @@ resource "null_resource" "add_instances_to_target_group" {
   provisioner "local-exec" {
     command = <<-EOT
       yc load-balancer target-group add-targets ${yandex_lb_target_group.adhunt_target_group.id} \
-        --target subnet-id=${data.yandex_vpc_subnet.subnet.id},ip-address=${yandex_compute_instance_group.adhunt_group.instances[0].network_interface[0].ip_address}
+        --target address=${yandex_compute_instance_group.adhunt_group.instances[0].network_interface[0].ip_address},subnet-id=${data.yandex_vpc_subnet.subnet.id}
     EOT
   }
 }

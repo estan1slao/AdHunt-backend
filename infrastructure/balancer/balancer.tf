@@ -87,9 +87,12 @@ resource "yandex_compute_instance_group" "adhunt_group" {
         runcmd:
           - mkdir -p /var/log/adhunt
           - chown -R ubuntu:ubuntu /var/log/adhunt
+          - mkdir -p /home/ubuntu/AdHunt-backend
+          - chown -R ubuntu:ubuntu /home/ubuntu/AdHunt-backend
           - cd /home/ubuntu/AdHunt-backend
-          - ls -la
-          - pwd
+          - ls -la /home/ubuntu
+          - ls -la /home/ubuntu/AdHunt-backend
+          - find / -name "AdHunt-backend" -type d 2>/dev/null
           - systemctl daemon-reload
           - systemctl enable adhunt.service
           - systemctl start adhunt.service

@@ -62,10 +62,29 @@ resource "yandex_compute_instance_group" "adhunt_group" {
     metadata = {
       user-data = <<-EOT
         #cloud-config
+        write_files:
+          - path: /etc/systemd/system/adhunt.service
+            content: |
+              [Unit]
+              Description=AdHunt Backend Service
+              After=network.target
+
+              [Service]
+              User=ubuntu
+              WorkingDirectory=/home/ubuntu/AdHunt-backend
+              Environment="PATH=/home/ubuntu/AdHunt-backend/venv/bin"
+              Environment="PYTHONPATH=/home/ubuntu/AdHunt-backend/AdHunt_backend"
+              Environment="DJANGO_SETTINGS_MODULE=AdHunt_backend.settings"
+              ExecStart=/home/ubuntu/AdHunt-backend/venv/bin/gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000
+              Restart=always
+
+              [Install]
+              WantedBy=multi-user.target
+
         runcmd:
-          - cd ~/AdHunt-backend
-          - source venv/bin/activate
-          - PYTHONPATH=./AdHunt_backend DJANGO_SETTINGS_MODULE=AdHunt_backend.settings gunicorn AdHunt_backend.wsgi:application --bind 0.0.0.0:8000
+          - systemctl daemon-reload
+          - systemctl enable adhunt.service
+          - systemctl start adhunt.service
       EOT
     }
   }

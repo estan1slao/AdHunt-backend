@@ -15,20 +15,22 @@ provider "yandex" {
 }
 
 data "yandex_vpc_network" "network" {
-  name = "adhunt-network"
+  name = "adhunt-network" 
 }
 
 data "yandex_vpc_subnet" "subnet" {
-  name           = "adhunt-subnet"
-  zone           = "ru-central1-a"
-  network_id     = yandex_vpc_network.network.id
-  v4_cidr_blocks = ["10.5.0.0/16"]
+  name = "adhunt-subnet"
+}
+
+# Создание образа из существующей ВМ
+resource "yandex_compute_image" "adhunt_image" {
+  name       = "adhunt-image"
+  source_disk_id = "existing-vm-disk-id"  # Замените на ID диска существующей ВМ
 }
 
 resource "yandex_lb_target_group" "adhunt_target_group" {
   name = "adhunt-target-group"
 }
-
 
 # Создание группы экземпляров
 resource "yandex_compute_instance_group" "adhunt_group" {
@@ -51,8 +53,8 @@ resource "yandex_compute_instance_group" "adhunt_group" {
     }
 
     network_interface {
-      network_id = yandex_vpc_network.network.id
-      subnet_ids = [yandex_vpc_subnet.subnet.id]
+      network_id = data.yandex_vpc_network.network.id
+      subnet_ids = [data.yandex_vpc_subnet.subnet.id]
       nat        = true
     }
 

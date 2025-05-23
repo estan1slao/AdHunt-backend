@@ -315,13 +315,56 @@ class AdvertisementListView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description='Поиск по названию и описанию',
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'sort_by',
+                openapi.IN_QUERY,
+                description='Сортировка (created_at, price)',
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'order',
+                openapi.IN_QUERY,
+                description='Порядок сортировки (asc, desc)',
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ],
         responses={
             200: AdvertisementSerializer(many=True),
         },
-        operation_description="Получение списка всех объявлений"
+        operation_description="Получение списка объявлений с возможностью фильтрации и сортировки"
     )
     def get(self, request):
         advertisements = Advertisement.objects.filter(status=AdvertisementStatus.ACTIVE)
+        
+        # Поиск по названию и описанию
+        search_query = request.query_params.get('search', '')
+        if search_query:
+            advertisements = advertisements.filter(
+                Q(title__icontains=search_query) | Q(description__icontains=search_query)
+            )
+        
+        # Сортировка
+        sort_by = request.query_params.get('sort_by', 'created_at')
+        order = request.query_params.get('order', 'desc')
+        
+        if sort_by not in ['created_at', 'price']:
+            sort_by = 'created_at'
+        if order not in ['asc', 'desc']:
+            order = 'desc'
+            
+        order_prefix = '' if order == 'asc' else '-'
+        advertisements = advertisements.order_by(f'{order_prefix}{sort_by}')
+        
         serializer = AdvertisementSerializer(advertisements, many=True, context={'request': request})
         return Response(serializer.data)
 

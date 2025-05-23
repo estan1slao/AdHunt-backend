@@ -25,7 +25,7 @@ data "yandex_vpc_subnet" "subnet" {
 # Создание образа из существующей ВМ
 resource "yandex_compute_image" "adhunt_image" {
   name       = "adhunt-image"
-  source_disk_id = "existing-vm-disk-id"  # Замените на ID диска существующей ВМ
+  source_disk_id = "fhmettr89egs715r95o7"
 }
 
 resource "yandex_lb_target_group" "adhunt_target_group" {

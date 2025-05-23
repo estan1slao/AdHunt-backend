@@ -29,12 +29,6 @@ data "yandex_compute_snapshot" "adhunt_snapshot" {
   name = "adhunt-disk-ubuntu-20-04"
 }
 
-resource "yandex_compute_image" "adhunt_image" {
-  name          = "adhunt-image-from-snapshot"
-  source_image  = data.yandex_compute_snapshot.adhunt_snapshot.id
-  os_type       = "LINUX"
-}
-
 resource "yandex_lb_target_group" "adhunt_target_group" {
   name = "adhunt-target-group"
 }
@@ -55,7 +49,7 @@ resource "yandex_compute_instance_group" "adhunt_group" {
 
     boot_disk {
       initialize_params {
-        image_id = yandex_compute_image.adhunt_image.id
+        snapshot_id = data.yandex_compute_snapshot.adhunt_snapshot.id
       }
     }
 

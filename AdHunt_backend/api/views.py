@@ -206,23 +206,36 @@ class AdvertisementUpdateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    deleted_images = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Advertisement
-        fields = ['title', 'description', 'price', 'images']
+        fields = ['title', 'description', 'price', 'images', 'deleted_images']
 
     def update(self, instance, validated_data):
         images = validated_data.pop('images', [])
+        deleted_images = validated_data.pop('deleted_images', [])
+        
+        # Обновляем основные поля
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
         instance.price = validated_data.get('price', instance.price)
         instance.status = AdvertisementStatus.PENDING
         instance.save()
 
+        # Удаляем указанные изображения
+        if deleted_images:
+            AdvertisementImage.objects.filter(
+                id__in=deleted_images,
+                advertisement=instance
+            ).delete()
+
+        # Добавляем новые изображения
         if images:
-            # Удаляем старые изображения
-            instance.images.all().delete()
-            # Создаем новые изображения
             for image in images:
                 AdvertisementImage.objects.create(
                     advertisement=instance,

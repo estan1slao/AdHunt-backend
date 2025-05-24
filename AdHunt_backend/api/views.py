@@ -443,7 +443,7 @@ class AdvertisementDetailView(APIView):
     def get(self, request, pk):
         advertisement = get_object_or_404(Advertisement, pk=pk)
         serializer = AdvertisementSerializer(advertisement, context={'request': request})
-        return Response(serializer.data)
+        return Response(serializer.data) 
 
     @swagger_auto_schema(
         request_body=AdvertisementUpdateSerializer,

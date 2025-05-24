@@ -188,7 +188,7 @@ class AdvertisementImageSerializer(serializers.ModelSerializer):
 class AdvertisementSerializer(serializers.ModelSerializer):
     images = AdvertisementImageSerializer(many=True, read_only=True)
     author = UserProfileSerializer(read_only=True)
-    is_favorite = serializers.BooleanField(read_only=True)
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Advertisement
@@ -540,7 +540,7 @@ class FavoriteAdvertisementView(APIView):
 
     @swagger_auto_schema(
         responses={
-            201: "Объявление добавлено в избранное",
+            201: AdvertisementSerializer,
             400: "Объявление уже в избранном",
             404: "Объявление не найдено"
         },
@@ -553,19 +553,22 @@ class FavoriteAdvertisementView(APIView):
             return Response({'error': 'Объявление уже в избранном'}, status=status.HTTP_400_BAD_REQUEST)
         
         FavoriteAdvertisement.objects.create(user=request.user, advertisement=advertisement)
-        return Response(status=status.HTTP_201_CREATED)
+        serializer = AdvertisementSerializer(advertisement, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         responses={
-            204: "Объявление удалено из избранного",
+            204: AdvertisementSerializer,
             404: "Объявление не найдено в избранном"
         },
         operation_description="Удаление объявления из избранного"
     )
     def delete(self, request, pk):
         favorite = get_object_or_404(FavoriteAdvertisement, user=request.user, advertisement_id=pk)
+        advertisement = favorite.advertisement
         favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = AdvertisementSerializer(advertisement, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_204_OK)
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)

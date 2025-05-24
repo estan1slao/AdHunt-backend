@@ -568,7 +568,7 @@ class FavoriteAdvertisementView(APIView):
         advertisement = favorite.advertisement
         favorite.delete()
         serializer = AdvertisementSerializer(advertisement, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_204_OK)
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)

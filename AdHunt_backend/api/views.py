@@ -558,7 +558,7 @@ class FavoriteAdvertisementView(APIView):
 
     @swagger_auto_schema(
         responses={
-            204: AdvertisementSerializer,
+            200: AdvertisementSerializer,
             404: "Объявление не найдено в избранном"
         },
         operation_description="Удаление объявления из избранного"
@@ -568,7 +568,7 @@ class FavoriteAdvertisementView(APIView):
         advertisement = favorite.advertisement
         favorite.delete()
         serializer = AdvertisementSerializer(advertisement, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)
